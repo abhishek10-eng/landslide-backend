@@ -45,6 +45,12 @@ const server = http.createServer((req, res) => {
     res.end();
     return;
   }
+  // ---------- ROOT ----------
+if (req.url === "/" && req.method === "GET") {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("ESP32 cloud backend is running");
+  return;
+}
 // ---------- RECEIVE SENSOR DATA FROM ESP32 ----------
 if (req.url === "/update-sensor" && req.method === "POST") {
   let body = "";
@@ -154,4 +160,5 @@ if (req.url === "/update-sensor" && req.method === "POST") {
 server.listen(5000, "0.0.0.0", () => {
   console.log("Backend running on port 5000");
 });
+
 
