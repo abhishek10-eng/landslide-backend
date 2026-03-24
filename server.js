@@ -137,7 +137,39 @@ sensorData.status = calculateStatus(sensorData);
     res.end(JSON.stringify(sensorData));
     return;
   }
+// ---------- UPDATE SENSOR DATA FROM ESP32 ----------
+if (req.url === "/update-data" && req.method === "POST") {
+  let body = "";
 
+  req.on("data", chunk => {
+    body += chunk.toString();
+  });
+
+  req.on("end", () => {
+    try {
+      const newData = JSON.parse(body);
+
+      sensorData = {
+        soilMoisture: newData.soilMoisture,
+        vibration: newData.vibration,
+        tiltAngle: newData.tiltAngle,
+        rainfall: newData.rainfall,
+      };
+
+      sensorData.status = calculateStatus(sensorData);
+
+      console.log("📡 LIVE DATA:", sensorData);
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ message: "Data updated" }));
+    } catch (err) {
+      res.writeHead(400);
+      res.end("Invalid JSON");
+    }
+  });
+
+  return;
+}
   // ---------- DEFAULT ----------
   res.writeHead(404);
   res.end("Not Found");
