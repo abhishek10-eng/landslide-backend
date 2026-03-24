@@ -113,7 +113,7 @@ if (req.url === "/update-sensor" && req.method === "POST") {
     return;
   }
 
-  // ---------- SENSOR DATA ----------
+  
   // ---------- SENSOR DATA ----------
 if (req.url === "/sensor-data" && req.method === "GET") {
 
