@@ -2,7 +2,7 @@ const http = require("http");
 const jwt = require("jsonwebtoken");
 
 const JWT_SECRET = "landslide_secret_key";
-
+console.log("🔥 FINAL BACKEND RUNNING");
 // ---------------- DATA ----------------
 let sensorData = {
   soilMoisture: 55,
@@ -114,20 +114,13 @@ if (req.url === "/update-sensor" && req.method === "POST") {
   }
 
   // ---------- SENSOR DATA ----------
-  if (req.url === "/sensor-data" && req.method === "GET") {
-    const user = verifyToken(req);
+  // ---------- SENSOR DATA ----------
+if (req.url === "/sensor-data" && req.method === "GET") {
 
-    if (!user) {
-      res.writeHead(401, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ message: "Unauthorized" }));
-      return;
-    }
-
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify(sensorData));
-    return;
-  }
-
+  res.writeHead(200, { "Content-Type": "application/json" });
+  res.end(JSON.stringify(sensorData));
+  return;
+}
   // ---------- SIMULATE LANDSLIDE ----------
   if (req.url === "/simulate-landslide" && req.method === "POST") {
     const user = verifyToken(req);
