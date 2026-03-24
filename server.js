@@ -1,34 +1,18 @@
+
 const http = require("http");
 const jwt = require("jsonwebtoken");
 
 const JWT_SECRET = "landslide_secret_key";
 console.log("🔥 NEW BACKEND DEPLOYED 🔥");
-function calculateStatus(data) {
-  const moistureThreshold = 70;
-  const tiltThreshold = 3.5;
-
-  if (data.soilMoisture > moistureThreshold && data.tiltAngle > tiltThreshold) {
-    return "DANGER";
-  }
-
-  if (data.soilMoisture > moistureThreshold) {
-    return "MOISTURE HIGH";
-  }
-
-  if (data.tiltAngle > tiltThreshold) {
-    return "TILT HIGH";
-  }
-
-  return "SAFE";
-}
 // ---------------- DATA ----------------
 let sensorData = {
-  soilMoisture: 80,
+  soilMoisture: 55,
   vibration: 2.1,
-  tiltAngle: 6,
+  tiltAngle: 5,
   rainfall: 20,
+  status: "SAFE"
 };
-sensorData.status = calculateStatus(sensorData);
+
 const users = [
   { username: "admin", password: "admin123", role: "admin" },
   { username: "user", password: "user123", role: "user" }
@@ -131,45 +115,14 @@ const server = http.createServer((req, res) => {
       vibration: 6.5,
       tiltAngle: 18,
       rainfall: 85,
+      status: "DANGER"
     };
-sensorData.status = calculateStatus(sensorData);
+
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify(sensorData));
     return;
   }
-// ---------- UPDATE SENSOR DATA FROM ESP32 ----------
-if (req.url === "/update-data" && req.method === "POST") {
-  let body = "";
 
-  req.on("data", chunk => {
-    body += chunk.toString();
-  });
-
-  req.on("end", () => {
-    try {
-      const newData = JSON.parse(body);
-
-      sensorData = {
-        soilMoisture: newData.soilMoisture,
-        vibration: newData.vibration,
-        tiltAngle: newData.tiltAngle,
-        rainfall: newData.rainfall,
-      };
-
-      sensorData.status = calculateStatus(sensorData);
-
-      console.log("📡 LIVE DATA:", sensorData);
-
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ message: "Data updated" }));
-    } catch (err) {
-      res.writeHead(400);
-      res.end("Invalid JSON");
-    }
-  });
-
-  return;
-}
   // ---------- DEFAULT ----------
   res.writeHead(404);
   res.end("Not Found");
