@@ -2,16 +2,33 @@ const http = require("http");
 const jwt = require("jsonwebtoken");
 
 const JWT_SECRET = "landslide_secret_key";
-console.log("🔥 FINAL BACKEND RUNNING");
+console.log("🔥 NEW BACKEND DEPLOYED 🔥");
+function calculateStatus(data) {
+  const moistureThreshold = 70;
+  const tiltThreshold = 3.5;
+
+  if (data.soilMoisture > moistureThreshold && data.tiltAngle > tiltThreshold) {
+    return "DANGER";
+  }
+
+  if (data.soilMoisture > moistureThreshold) {
+    return "MOISTURE HIGH";
+  }
+
+  if (data.tiltAngle > tiltThreshold) {
+    return "TILT HIGH";
+  }
+
+  return "SAFE";
+}
 // ---------------- DATA ----------------
 let sensorData = {
-  soilMoisture: 55,
+  soilMoisture: 80,
   vibration: 2.1,
-  tiltAngle: 5,
+  tiltAngle: 6,
   rainfall: 20,
-  status: "SAFE"
 };
-
+sensorData.status = calculateStatus(sensorData);
 const users = [
   { username: "admin", password: "admin123", role: "admin" },
   { username: "user", password: "user123", role: "user" }
@@ -23,21 +40,20 @@ function verifyToken(req) {
   if (!authHeader) return null;
 
   const token = authHeader.split(" ")[1];
+
   try {
     return jwt.verify(token, JWT_SECRET);
-  } catch (err) {
+  } catch {
     return null;
   }
 }
 
 // ---------------- SERVER ----------------
 const server = http.createServer((req, res) => {
+
   // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
 
   if (req.method === "OPTIONS") {
@@ -45,37 +61,15 @@ const server = http.createServer((req, res) => {
     res.end();
     return;
   }
+
   // ---------- ROOT ----------
-if (req.url === "/" && req.method === "GET") {
-  res.writeHead(200, { "Content-Type": "text/plain" });
-  res.end("ESP32 cloud backend is running");
-  return;
-}
-// ---------- RECEIVE SENSOR DATA FROM ESP32 ----------
-if (req.url === "/update-sensor" && req.method === "POST") {
-  let body = "";
+  if (req.url === "/" && req.method === "GET") {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("ESP32 cloud backend is running");
+    return;
+  }
 
-  req.on("data", chunk => {
-    body += chunk.toString();
-  });
-
-  req.on("end", () => {
-    const data = JSON.parse(body);
-
-    sensorData = {
-      soilMoisture: data.soilMoisture,
-      vibration: data.vibration,
-      tiltAngle: data.tiltAngle,
-      rainfall: data.rainfall || 0,
-      status: "SAFE"
-    };
-
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ message: "Data updated" }));
-  });
-
-  return;
-}
+  
   // ---------- LOGIN ----------
   if (req.url === "/login" && req.method === "POST") {
     let body = "";
@@ -113,16 +107,17 @@ if (req.url === "/update-sensor" && req.method === "POST") {
     return;
   }
 
-  
   // ---------- SENSOR DATA ----------
-if (req.url === "/sensor-data" && req.method === "GET") {
+  if (req.url === "/sensor-data" && req.method === "GET") {
 
-  res.writeHead(200, { "Content-Type": "application/json" });
-  res.end(JSON.stringify(sensorData));
-  return;
-}
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(sensorData));
+    return;
+  }
+
   // ---------- SIMULATE LANDSLIDE ----------
   if (req.url === "/simulate-landslide" && req.method === "POST") {
+
     const user = verifyToken(req);
 
     if (!user) {
@@ -136,9 +131,8 @@ if (req.url === "/sensor-data" && req.method === "GET") {
       vibration: 6.5,
       tiltAngle: 18,
       rainfall: 85,
-      status: "DANGER"
     };
-
+sensorData.status = calculateStatus(sensorData);
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify(sensorData));
     return;
@@ -150,8 +144,8 @@ if (req.url === "/sensor-data" && req.method === "GET") {
 });
 
 // ---------------- START ----------------
-server.listen(5000, "0.0.0.0", () => {
-  console.log("Backend running on port 5000");
+const PORT = process.env.PORT || 5000;
+
+server.listen(PORT, "0.0.0.0", () => {
+  console.log("Backend running on port " + PORT);
 });
-
-
