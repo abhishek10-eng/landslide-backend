@@ -53,7 +53,38 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  
+  // ---------- RECEIVE SENSOR DATA FROM ESP32 ----------
+if (req.url === "/update-sensor" && req.method === "POST") {
+  let body = "";
+
+  req.on("data", chunk => {
+    body += chunk.toString();
+  });
+
+  req.on("end", () => {
+    try {
+      const data = JSON.parse(body);
+
+      sensorData = {
+        soilMoisture: data.soilMoisture,
+        vibration: data.vibration,
+        tiltAngle: data.tiltAngle,
+        rainfall: data.rainfall || 0,
+        status: "SAFE"
+      };
+
+      console.log("📡 Data received:", sensorData);
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ message: "Data updated" }));
+    } catch (err) {
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ message: "Invalid JSON" }));
+    }
+  });
+
+  return;
+}
   // ---------- LOGIN ----------
   if (req.url === "/login" && req.method === "POST") {
     let body = "";
