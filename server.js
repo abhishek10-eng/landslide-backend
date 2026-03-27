@@ -1,9 +1,7 @@
-
 const http = require("http");
-const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = "landslide_secret_key";
-console.log("🔥 NEW BACKEND DEPLOYED 🔥");
+console.log("🔥 NEW BACKEND DEPLOYED (NO AUTH) 🔥");
+
 // ---------------- DATA ----------------
 let sensorData = {
   soilMoisture: 55,
@@ -13,31 +11,12 @@ let sensorData = {
   status: "SAFE"
 };
 
-const users = [
-  { username: "admin", password: "admin123", role: "admin" },
-  { username: "user", password: "user123", role: "user" }
-];
-
-// ---------------- AUTH ----------------
-function verifyToken(req) {
-  const authHeader = req.headers["authorization"];
-  if (!authHeader) return null;
-
-  const token = authHeader.split(" ")[1];
-
-  try {
-    return jwt.verify(token, JWT_SECRET);
-  } catch {
-    return null;
-  }
-}
-
 // ---------------- SERVER ----------------
 const server = http.createServer((req, res) => {
 
   // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
 
   if (req.method === "OPTIONS") {
@@ -49,44 +28,12 @@ const server = http.createServer((req, res) => {
   // ---------- ROOT ----------
   if (req.url === "/" && req.method === "GET") {
     res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("ESP32 cloud backend is running");
+    res.end("Landslide backend is running 🚀");
     return;
   }
 
   // ---------- RECEIVE SENSOR DATA FROM ESP32 ----------
-if (req.url === "/update-sensor" && req.method === "POST") {
-  let body = "";
-
-  req.on("data", chunk => {
-    body += chunk.toString();
-  });
-
-  req.on("end", () => {
-    try {
-      const data = JSON.parse(body);
-
-      sensorData = {
-        soilMoisture: data.soilMoisture,
-        vibration: data.vibration,
-        tiltAngle: data.tiltAngle,
-        rainfall: data.rainfall || 0,
-        status: "SAFE"
-      };
-
-      console.log("📡 Data received:", sensorData);
-
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ message: "Data updated" }));
-    } catch (err) {
-      res.writeHead(400, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ message: "Invalid JSON" }));
-    }
-  });
-
-  return;
-}
-  // ---------- LOGIN ----------
-  if (req.url === "/login" && req.method === "POST") {
+  if (req.url === "/update-sensor" && req.method === "POST") {
     let body = "";
 
     req.on("data", chunk => {
@@ -94,29 +41,26 @@ if (req.url === "/update-sensor" && req.method === "POST") {
     });
 
     req.on("end", () => {
-      const { username, password } = JSON.parse(body);
+      try {
+        const data = JSON.parse(body);
 
-      const user = users.find(
-        u => u.username === username && u.password === password
-      );
+        sensorData = {
+          soilMoisture: data.soilMoisture,
+          vibration: data.vibration,
+          tiltAngle: data.tiltAngle,
+          rainfall: data.rainfall || 0,
+          status: "SAFE"
+        };
 
-      if (!user) {
-        res.writeHead(401, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ message: "Invalid credentials" }));
-        return;
+        console.log("📡 Data received:", sensorData);
+
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ message: "Data updated" }));
+
+      } catch (err) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ message: "Invalid JSON" }));
       }
-
-      const token = jwt.sign(
-        { username: user.username, role: user.role },
-        JWT_SECRET,
-        { expiresIn: "1h" }
-      );
-
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({
-        message: "Login successful",
-        token: token
-      }));
     });
 
     return;
@@ -124,7 +68,6 @@ if (req.url === "/update-sensor" && req.method === "POST") {
 
   // ---------- SENSOR DATA ----------
   if (req.url === "/sensor-data" && req.method === "GET") {
-
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify(sensorData));
     return;
@@ -133,14 +76,6 @@ if (req.url === "/update-sensor" && req.method === "POST") {
   // ---------- SIMULATE LANDSLIDE ----------
   if (req.url === "/simulate-landslide" && req.method === "POST") {
 
-    const user = verifyToken(req);
-
-    if (!user) {
-      res.writeHead(401, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ message: "Unauthorized" }));
-      return;
-    }
-
     sensorData = {
       soilMoisture: 90,
       vibration: 6.5,
@@ -148,6 +83,8 @@ if (req.url === "/update-sensor" && req.method === "POST") {
       rainfall: 85,
       status: "DANGER"
     };
+
+    console.log("⚠️ Landslide simulated!");
 
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify(sensorData));
