@@ -1,0 +1,32 @@
+name: my_first_app
+description: A Flutter application.
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+
+  flutter_local_notifications: ^17.0.0
+  http: ^1.5.0
+  cupertino_icons: ^1.0.6
+  permission_handler: ^11.0.0 
+  url_launcher: ^6.2.5
+  fl_chart: ^0.68.0
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+flutter_local_notifications: ^9.9.1

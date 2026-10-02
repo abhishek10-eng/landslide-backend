@@ -1,0 +1,13 @@
+{
+  "name": "landslide-backend",
+  "version": "1.0.0",
+  "description": "Landslide monitoring backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3"
+  }
+}
